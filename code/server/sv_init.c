@@ -932,6 +932,8 @@ void SV_Init (void)
 	sv_extraPaks = Cvar_Get ("sv_extraPaks", "", CVAR_ARCHIVE | CVAR_LATCH);
 	sv_extraPure = Cvar_Get ("sv_extraPure", "0", CVAR_ARCHIVE | CVAR_LATCH);
 
+	sv_allowSuicide = Cvar_Get ("sv_allowSuicide", "1", CVAR_ARCHIVE );	// optional cvar to disable /kill on server
+ 
 #ifdef USE_AUTH
 	sv_authServerIP = Cvar_Get("sv_authServerIP", "", CVAR_TEMP | CVAR_ROM);
 	sv_auth_engine = Cvar_Get("sv_auth_engine", "1", CVAR_ROM);

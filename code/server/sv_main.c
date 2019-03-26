@@ -52,7 +52,7 @@ cvar_t	*sv_extraPure;
 cvar_t	*sv_extraPaks;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_newpurelist;
-cvar_t	*sv_lanForceRate;				// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
+cvar_t	*sv_lanForceRate; 	// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_banFile;
 cvar_t	*sv_clientsPerIp;
 
@@ -69,6 +69,8 @@ cvar_t	*sv_teamSwitch;					// allow players to switch teams (0, Default = player
 cvar_t	*sv_voip;
 cvar_t	*sv_voipProtocol;
 #endif
+
+cvar_t  *sv_allowSuicide;		// optional cvar to disable /kill on server
 
 #ifdef USE_AUTH
 cvar_t	*sv_authServerIP;

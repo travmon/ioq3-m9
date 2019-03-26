@@ -1,8 +1,8 @@
 # ioquake 3 for UrbanTerror
 
-[![Build Status](https://github.com/mickael9/ioq3/actions/workflows/main.yml/badge.svg)](https://github.com/mickael9/ioq3/actions/workflows/main.yml)
+[![Build Status](https://github.com/travmon/ioq3/actions/workflows/main.yml/badge.svg)](https://github.com/travmon/ioq3/actions/workflows/main.yml)
 
-[Download prebuilt binaries for Linux/macOS/Windows](https://github.com/mickael9/ioq3/releases)
+[Download prebuilt binaries for Linux/macOS/Windows](https://github.com/travmon/ioq3/releases)
 
 This project is an initiative to backport the relevant ioUrbanTerror-specific
 features to an up-to-date ioquake3.
@@ -235,5 +235,6 @@ Start a server in FFA (g_gametype 0) with a SkeetShoot map from 2014 or later.
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
 - [x] Send UrT specific server infostring
 - [x] Partial matching of map and players
+- [x] `sv_allowSuicide` cvar  Option to disable suicide via /kill Default is allow 1
 
 This list is likely incomplete. Please let me know if I forgot anything!

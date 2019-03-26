@@ -356,6 +356,8 @@ extern	cvar_t	*sv_voip;
 extern	cvar_t	*sv_voipProtocol;
 #endif
 
+extern  cvar_t  *sv_allowSuicide;	// optional cvar to disable /kill on server
+
 #ifdef USE_AUTH
 extern	cvar_t	*sv_authServerIP;
 extern	cvar_t	*sv_auth_engine;
