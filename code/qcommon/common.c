@@ -34,14 +34,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 int demo_protocols[] =
 { 67, 66, 68, 0 };
 
-#define MAX_NUM_ARGVS	50
+#define	MAX_NUM_ARGVS				50
 
-#define MIN_DEDICATED_COMHUNKMEGS 96
-#define MIN_COMHUNKMEGS		768
-#define DEF_COMHUNKMEGS		1024
-#define DEF_COMZONEMEGS		32
-#define DEF_COMHUNKMEGS_S	XSTRING(DEF_COMHUNKMEGS)
-#define DEF_COMZONEMEGS_S	XSTRING(DEF_COMZONEMEGS)
+#define	MIN_DEDICATED_COMHUNKMEGS	96
+#define	MIN_COMHUNKMEGS				768
+#define	DEF_COMHUNKMEGS				1024
+#define	DEF_COMZONEMEGS				32
+#define	DEF_COMHUNKMEGS_S			XSTRING(DEF_COMHUNKMEGS)
+#define	DEF_COMZONEMEGS_S			XSTRING(DEF_COMZONEMEGS)
 
 int		com_argc;
 char	*com_argv[MAX_NUM_ARGVS+1];
@@ -77,8 +77,8 @@ cvar_t	*com_introPlayed;
 #endif
 cvar_t	*cl_paused;
 cvar_t	*sv_paused;
-cvar_t  *cl_packetdelay;
-cvar_t  *sv_packetdelay;
+cvar_t	*cl_packetdelay;
+cvar_t	*sv_packetdelay;
 cvar_t	*com_cameraMode;
 cvar_t	*com_ansiColor;
 cvar_t	*com_unfocused;
@@ -92,11 +92,11 @@ cvar_t	*com_protocol;
 cvar_t	*com_legacyprotocol;
 #endif
 cvar_t	*com_basegame;
-cvar_t  *com_homepath;
+cvar_t	*com_homepath;
 cvar_t	*com_busyWait;
 cvar_t	*com_logfileName;
 #ifndef DEDICATED
-cvar_t  *con_autochat;
+cvar_t	*con_autochat;
 #endif
 
 #if idx64
@@ -108,9 +108,9 @@ cvar_t  *con_autochat;
 #endif
 
 // com_speeds times
-int		time_game;
-int		time_frontend;		// renderer frontend time
-int		time_backend;		// renderer backend time
+int			time_game;
+int			time_frontend;		// renderer frontend time
+int			time_backend;		// renderer backend time
 
 int			com_frameTime;
 int			com_frameNumber;
@@ -168,7 +168,7 @@ A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 void QDECL Com_Printf( const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-  static qboolean opening_qconsole = qfalse;
+	static qboolean opening_qconsole = qfalse;
 
 
 	va_start (argptr,fmt);
@@ -181,9 +181,9 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 			*rd_buffer = 0;
 		}
 		Q_strcat(rd_buffer, rd_buffersize, msg);
-    // TTimo nooo .. that would defeat the purpose
-		//rd_flush(rd_buffer);			
-		//*rd_buffer = 0;
+		// TTimo nooo .. that would defeat the purpose
+		// rd_flush(rd_buffer);			
+		// *rd_buffer = 0;
 		return;
 	}
 
@@ -199,13 +199,13 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
-    // TTimo: only open the qconsole.log if the filesystem is in an initialized state
-    //   also, avoid recursing in the qconsole.log opening (i.e. if fs_debug is on)
+	// TTimo: only open the qconsole.log if the filesystem is in an initialized state
+	//   also, avoid recursing in the qconsole.log opening (i.e. if fs_debug is on)
 		if ( !logfile && FS_Initialized() && !opening_qconsole) {
 			struct tm *newtime;
 			time_t aclock;
 
-      opening_qconsole = qtrue;
+			opening_qconsole = qtrue;
 
 			time( &aclock );
 			newtime = localtime( &aclock );
@@ -229,7 +229,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 				Cvar_SetValue("logfile", 0);
 			}
 
-      opening_qconsole = qfalse;
+		opening_qconsole = qfalse;
 		}
 		if ( logfile && FS_Initialized()) {
 			FS_Write(msg, strlen(msg), logfile);
@@ -429,50 +429,50 @@ Break it up into multiple console lines
 ==================
 */
 void Com_ParseCommandLine( char *commandLine ) {
-    int inq = 0;
+	int inq = 0;
 
-    if ( !*commandLine ) {
-        return;
-    }
+	if ( !*commandLine ) {
+		return;
+	}
 
-    com_consoleLines[com_numConsoleLines] = commandLine;
-    com_numConsoleLines++;
+	com_consoleLines[com_numConsoleLines] = commandLine;
+	com_numConsoleLines++;
 
-    while ( *commandLine ) {
-        if (*commandLine == '"') {
-            inq = !inq;
-        }
-        // look for a + separating character
-        // if commandLine came from a file, we might have real line seperators
-        if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' ) {
-            if ( com_numConsoleLines == MAX_CONSOLE_LINES ) {
-                return;
-            }
-            com_consoleLines[com_numConsoleLines] = commandLine + 1;
-            com_numConsoleLines++;
-            *commandLine = 0;
-        }
-        commandLine++;
-    }
+	while ( *commandLine ) {
+		if (*commandLine == '"') {
+			inq = !inq;
+		}
+		// look for a + separating character
+		// if commandLine came from a file, we might have real line seperators
+		if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' ) {
+			if ( com_numConsoleLines == MAX_CONSOLE_LINES ) {
+				return;
+			}
+			com_consoleLines[com_numConsoleLines] = commandLine + 1;
+			com_numConsoleLines++;
+			*commandLine = 0;
+		}
+		commandLine++;
+	}
 }
 
 void Com_ParseCommandFile( int slot, char *dir )
 {
-    static char commandLine[3][MAX_STRING_CHARS] = {0};
-    FILE *fp;
+	static char commandLine[3][MAX_STRING_CHARS] = {0};
+	FILE *fp;
 
-    assert( slot < sizeof(commandLine) / sizeof(*commandLine) );
+	assert( slot < sizeof(commandLine) / sizeof(*commandLine) );
 
-    fp = Sys_FOpen(va("%s%c%s", dir, PATH_SEP, COMMAND_FILE_NAME), "rb");
-    if (!fp) {
-        return;
-    }
+	fp = Sys_FOpen(va("%s%c%s", dir, PATH_SEP, COMMAND_FILE_NAME), "rb");
+	if (!fp) {
+		return;
+	}
 
-    if (fread(commandLine[slot], 1, sizeof(*commandLine) - 1, fp) > 0) {
-        Com_ParseCommandLine(commandLine[slot]);
-    }
+	if (fread(commandLine[slot], 1, sizeof(*commandLine) - 1, fp) > 0) {
+		Com_ParseCommandLine(commandLine[slot]);
+	}
 
-    fclose(fp);
+	fclose(fp);
 
 }
 
@@ -802,25 +802,25 @@ all big things are allocated on the hunk.
 #define MINFRAGMENT	64
 
 typedef struct zonedebug_s {
-	char *label;
-	char *file;
-	int line;
-	int allocSize;
+	char		*label;
+	char		*file;
+	int			line;
+	int			allocSize;
 } zonedebug_t;
 
 typedef struct memblock_s {
-	int		size;           // including the header and possibly tiny fragments
-	int     tag;            // a tag of 0 is a free block
-	struct memblock_s       *next, *prev;
-	int     id;        		// should be ZONEID
+	int			size;			// including the header and possibly tiny fragments
+	int			tag;			// a tag of 0 is a free block
+	struct		memblock_s	*next, *prev;
+	int			id;				// should be ZONEID
 #ifdef ZONE_DEBUG
 	zonedebug_t d;
 #endif
 } memblock_t;
 
 typedef struct {
-	int		size;			// total bytes malloced, including header
-	int		used;			// total bytes used
+	int			size;			// total bytes malloced, including header
+	int			used;			// total bytes used
 	memblock_t	blocklist;	// start / end cap for linked list
 	memblock_t	*rover;
 } memzone_t;
@@ -1246,27 +1246,27 @@ Goals:
 	minimize total pages in use at run time
 	minimize total pages needed during load time
 
-  Single block of memory with stack allocators coming from both ends towards the middle.
+	Single block of memory with stack allocators coming from both ends towards the middle.
 
-  One side is designated the temporary memory allocator.
+	One side is designated the temporary memory allocator.
 
-  Temporary memory can be allocated and freed in any order.
+	Temporary memory can be allocated and freed in any order.
 
-  A highwater mark is kept of the most in use at any time.
+	A highwater mark is kept of the most in use at any time.
 
-  When there is no temporary memory allocated, the permanent and temp sides
-  can be switched, allowing the already touched temp memory to be used for
-  permanent storage.
+	When there is no temporary memory allocated, the permanent and temp sides
+	can be switched, allowing the already touched temp memory to be used for
+	permanent storage.
 
-  Temp memory must never be allocated on two ends at once, or fragmentation
-  could occur.
+	Temp memory must never be allocated on two ends at once, or fragmentation
+	could occur.
 
-  If we have any in-use temp memory, additional temp allocations must come from
-  that side.
+	If we have any in-use temp memory, additional temp allocations must come from
+	that side.
 
-  If not, we can choose to make either side the new temp side and push future
-  permanent allocations to the other side.  Permanent allocations should be
-  kept on the side that has the current greatest wasted highwater mark.
+	If not, we can choose to make either side the new temp side and push future
+	permanent allocations to the other side.  Permanent allocations should be
+	kept on the side that has the current greatest wasted highwater mark.
 
 ==============================================================================
 */
@@ -1869,10 +1869,10 @@ Hunk_FreeTempMemory
 void Hunk_FreeTempMemory( void *buf ) {
 	hunkHeader_t	*hdr;
 
-	  // free with Z_Free if the hunk has not been initialized
-	  // this allows the config and product id files ( journal files too ) to be loaded
-	  // by the file system without redunant routines in the file system utilizing different 
-	  // memory systems
+	// free with Z_Free if the hunk has not been initialized
+	// this allows the config and product id files ( journal files too ) to be loaded
+	// by the file system without redunant routines in the file system utilizing different 
+	// memory systems
 	if ( s_hunkData == NULL )
 	{
 		Z_Free(buf);
@@ -1976,9 +1976,9 @@ EVENT LOOP
 #define MAX_QUEUED_EVENTS  256
 #define MASK_QUEUED_EVENTS ( MAX_QUEUED_EVENTS - 1 )
 
-static sysEvent_t  eventQueue[ MAX_QUEUED_EVENTS ];
-static int         eventHead = 0;
-static int         eventTail = 0;
+static sysEvent_t eventQueue[ MAX_QUEUED_EVENTS ];
+static int eventHead = 0;
+static int eventTail = 0;
 
 /*
 ================
@@ -2129,13 +2129,13 @@ Com_InitPushEvent
 =================
 */
 void Com_InitPushEvent( void ) {
-  // clear the static buffer array
-  // this requires SE_NONE to be accepted as a valid but NOP event
-  memset( com_pushedEvents, 0, sizeof(com_pushedEvents) );
-  // reset counters while we are at it
-  // beware: GetEvent might still return an SE_NONE from the buffer
-  com_pushedEventsHead = 0;
-  com_pushedEventsTail = 0;
+	// clear the static buffer array
+	// this requires SE_NONE to be accepted as a valid but NOP event
+	memset( com_pushedEvents, 0, sizeof(com_pushedEvents) );
+	// reset counters while we are at it
+	// beware: GetEvent might still return an SE_NONE from the buffer
+	com_pushedEventsHead = 0;
+	com_pushedEventsTail = 0;
 }
 
 
@@ -2229,9 +2229,11 @@ int Com_EventLoop( void ) {
 		// if no more events are available
 		if ( ev.evType == SE_NONE ) {
 			// manually send packet events for the loopback channel
+#ifndef DEDICATED
 			while ( NET_GetLoopPacket( NS_CLIENT, &evFrom, &buf ) ) {
 				CL_PacketEvent( evFrom, &buf );
 			}
+#endif
 
 			while ( NET_GetLoopPacket( NS_SERVER, &evFrom, &buf ) ) {
 				// if the server just shut down, flush the events
@@ -2244,8 +2246,8 @@ int Com_EventLoop( void ) {
 		}
 
 
-		switch(ev.evType)
-		{
+		switch(ev.evType) {
+#ifndef DEDICATED
 			case SE_KEY:
 				CL_KeyEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
@@ -2258,6 +2260,7 @@ int Com_EventLoop( void ) {
 			case SE_JOYSTICK_AXIS:
 				CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
+#endif
 			case SE_CONSOLE:
 				Cbuf_AddText( (char *)ev.evPtr );
 				Cbuf_AddText( "\n" );
@@ -2382,7 +2385,7 @@ void Com_Setenv_f(void)
 			Com_Printf("%s=%s\n", arg1, env);
 		else
 			Com_Printf("%s undefined\n", arg1);
-        }
+		}
 }
 
 /*
@@ -2978,7 +2981,6 @@ void Com_Frame( void ) {
 	int		timeBeforeEvents;
 	int		timeBeforeClient;
 	int		timeAfter;
-  
 
 	if ( setjmp (abortframe) ) {
 		return;			// an ERR_DROP was thrown
@@ -3202,7 +3204,7 @@ Field_Clear
 ==================
 */
 void Field_Clear( field_t *edit ) {
-  memset(edit->buffer, 0, MAX_EDIT_LINE);
+	memset(edit->buffer, 0, MAX_EDIT_LINE);
 	edit->cursor = 0;
 	edit->scroll = 0;
 }
@@ -3680,7 +3682,7 @@ void Field_CompletePlayerName( const char **names, int nameCount )
 
 int QDECL Com_strCompare( const void *a, const void *b )
 {
-    const char **pa = (const char **)a;
-    const char **pb = (const char **)b;
-    return strcmp( *pa, *pb );
+	const char **pa = (const char **)a;
+	const char **pb = (const char **)b;
+	return strcmp( *pa, *pb );
 }

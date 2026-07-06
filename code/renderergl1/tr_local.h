@@ -242,7 +242,7 @@ typedef struct {
 
 	// used for TMOD_SCALE
 	float			scale[2];			// s *= scale[0]
-	                                    // t *= scale[1]
+										// t *= scale[1]
 
 	// used for TMOD_SCROLL
 	float			scroll[2];			// s' = s + scroll[0] * time
@@ -255,7 +255,7 @@ typedef struct {
 } texModInfo_t;
 
 
-#define	MAX_IMAGE_ANIMATIONS	8
+#define	MAX_IMAGE_ANIMATIONS	24
 
 typedef struct {
 	image_t			*image[MAX_IMAGE_ANIMATIONS];

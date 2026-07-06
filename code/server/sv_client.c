@@ -517,6 +517,8 @@ void SV_FreeClient(client_t *client)
 	SV_Netchan_FreeQueue(client);
 }
 
+void SV_StopRecordOne(client_t *client);
+
 /*
 =====================
 SV_DropClient
@@ -530,6 +532,8 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	int		i;
 	challenge_t	*challenge;
 	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
+
+	if (drop->demo_recording) SV_StopRecordOne(drop);
 
 	if ( drop->state == CS_ZOMBIE ) {
 		return;		// already dropped
@@ -610,6 +614,8 @@ void SV_Auth_DropClient(client_t *drop, const char *reason, const char *message)
 	int		i;
 	challenge_t	*challenge;
 	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
+
+	if (drop->demo_recording) SV_StopRecordOne(drop);
 
 	if (drop->state == CS_ZOMBIE) {
 		return;		// already dropped
@@ -1044,6 +1050,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	char	*ip;
 	int		i;
 	int	len;
+	const int maxRate = 100000;
 
 	// name for C code
 	Q_strncpyz( cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name) );
@@ -1053,7 +1060,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	// if the client is on the same subnet as the server and we aren't running an
 	// internet public server, assume they don't need a rate choke
 	if ( Sys_IsLANAddress( cl->netchan.remoteAddress ) && com_dedicated->integer != 2 && sv_lanForceRate->integer == 1) {
-		cl->rate = 99999;	// lans should not rate limit
+		cl->rate = maxRate;	// lans should not rate limit
 	} else {
 		val = Info_ValueForKey (cl->userinfo, "rate");
 		if (strlen(val)) {
@@ -1061,11 +1068,11 @@ void SV_UserinfoChanged( client_t *cl ) {
 			cl->rate = i;
 			if (cl->rate < 1000) {
 				cl->rate = 1000;
-			} else if (cl->rate > 90000) {
-				cl->rate = 90000;
+			} else if (cl->rate > maxRate) {
+				cl->rate = maxRate;
 			}
 		} else {
-			cl->rate = 3000;
+			cl->rate = 5000; // was 3000
 		}
 	}
 	val = Info_ValueForKey (cl->userinfo, "handicap");
@@ -1077,23 +1084,21 @@ void SV_UserinfoChanged( client_t *cl ) {
 	}
 
 	// snaps command
-	val = Info_ValueForKey (cl->userinfo, "snaps");
-	
-	if(strlen(val))
-	{
-		i = atoi(val);
-		
-		if(i < 1)
-			i = 1;
-		else if(i > sv_fps->integer)
-			i = sv_fps->integer;
-
-		i = 1000 / i;
-	}
+	val = Info_ValueForKey( cl->userinfo, "snaps" );
+	if ( val[0] )
+		i = atoi( val );
 	else
-		i = 50;
+		i = sv_fps->integer; // was 20, hardcoded
 
-	if(i != cl->snapshotMsec)
+	// range check
+	if ( i < 1 )
+		i = 1;
+	else if ( i > sv_fps->integer )
+		i = sv_fps->integer;
+
+	i = 1000 / i; // from FPS to milliseconds
+	
+	if ( i != cl->snapshotMsec )
 	{
 		// Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
 		cl->lastSnapshotTime = 0;
@@ -1243,6 +1248,21 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 			Cmd_Args_Sanitize();
 
 			argsFromOneMaxlen = -1;
+			
+			// Fix for the annoying "must wait 5 seconds before switching teams" limitation
+            		if (Q_stricmp("team", Cmd_Argv(0)) == 0) {
+				int cid;
+        			cid = cl - svs.clients;
+				if (sv_teamSwitch->integer) {
+                			Cmd_ExecuteString(va("forceteam %d %s", cid, Cmd_Argv(1)));
+                			return;
+				}
+				if (Cvar_VariableIntegerValue("g_matchmode") == 1){
+					// always allow team switching whilst matchmode is 1
+                			Cmd_ExecuteString(va("forceteam %d %s", cid, Cmd_Argv(1)));
+                			return;
+				}
+                	}
 			if (Q_stricmp("say", Cmd_Argv(0)) == 0 ||
 					Q_stricmp("say_team", Cmd_Argv(0)) == 0) {
 				argsFromOneMaxlen = MAX_SAY_STRLEN;
@@ -1440,8 +1460,9 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 		oldcmd = cmd;
 	}
 
-	// save time for ping calculation
-	cl->frames[ cl->messageAcknowledge & PACKET_MASK ].messageAcked = svs.time;
+	// save time for ping calculation, only in the first acknowledge
+	if ( cl->frames[ cl->messageAcknowledge & PACKET_MASK ].messageAcked == 0 )
+		cl->frames[ cl->messageAcknowledge & PACKET_MASK ].messageAcked = Sys_Milliseconds();
 
 	// TTimo
 	// catch the no-cp-yet situation before SV_ClientEnterWorld

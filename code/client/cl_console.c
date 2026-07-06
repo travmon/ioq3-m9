@@ -56,11 +56,10 @@ typedef struct {
 #define CONSOLE_ALL 0
 #define CONSOLE_GENERAL 1
 #define CONSOLE_KILLS 2
-#define CONSOLE_HITS 3
-#define CONSOLE_CHAT 4
-#define CONSOLE_DEV 5
+#define CONSOLE_CHAT 3
+#define CONSOLE_DEV 4
 
-console_t consoles[6];
+console_t consoles[5];
 
 console_t *currentCon = &consoles[CONSOLE_ALL];
 console_t *mainCon = &consoles[CONSOLE_ALL];
@@ -68,8 +67,7 @@ console_t *mainCon = &consoles[CONSOLE_ALL];
 char *consoleNames[] = {
 	"All",
 	"General",
-	"Kills",
-	"Hits",
+	"Frag",
 	"Chat",
 	"Dev"
 };
@@ -201,16 +199,16 @@ Save the console contents out to a file
 */
 void Con_Dump_f (void)
 {
-	int		l, x, i;
+	int		l, x, i, n;
 	short	*line;
 	fileHandle_t	f;
 	int		bufferlen;
 	char	*buffer;
-	char	filename[MAX_QPATH];
+	char	filename[ MAX_QPATH ];
 
 	if (Cmd_Argc() != 2)
 	{
-		Com_Printf ("usage: condump <filename>\n");
+		Com_Printf( "Dump the active console tab.\nUsage: condump <filename>\n" );
 		return;
 	}
 
@@ -232,36 +230,36 @@ void Con_Dump_f (void)
 
 	Com_Printf ("Dumped console text to %s.\n", filename );
 
-	// skip empty lines
-	for (l = mainCon->current - mainCon->totallines + 1 ; l <= mainCon->current ; l++)
-	{
-		line = mainCon->text + (l%mainCon->totallines)*mainCon->linewidth;
-		for (x=0 ; x<consoles[CONSOLE_ALL].linewidth ; x++)
-			if ((line[x] & 0xff) != ' ')
-				break;
-		if (x != mainCon->linewidth)
-			break;
+	if (currentCon->current >= currentCon->totallines ) {
+		n = currentCon->totallines;
+		l = currentCon->current + 1;
+	} else {
+		n = currentCon->current + 1;
+		l = 0;
 	}
 
 #ifdef _WIN32
-	bufferlen = mainCon->linewidth + 3 * sizeof ( char );
+	bufferlen = currentCon->linewidth + 3 * sizeof ( char );
 #else
-	bufferlen = mainCon->linewidth + 2 * sizeof ( char );
+	bufferlen = currentCon->linewidth + 2 * sizeof ( char );
 #endif
 
 	buffer = Hunk_AllocateTempMemory( bufferlen );
 
 	// write the remaining lines
-	buffer[bufferlen-1] = 0;
-	for ( ; l <= mainCon->current ; l++)
+	buffer[ bufferlen - 1 ] = '\0';
+
+	for ( i = 0; i < n ; i++, l++ ) 
 	{
-		line = mainCon->text + (l%mainCon->totallines)*mainCon->linewidth;
-		for(i=0; i<mainCon->linewidth; i++)
-			buffer[i] = line[i] & 0xff;
-		for (x=mainCon->linewidth-1 ; x>=0 ; x--)
-		{
-			if (buffer[x] == ' ')
-				buffer[x] = 0;
+		line = currentCon->text + (l % currentCon->totallines) * currentCon->linewidth;
+		// store line
+		for( x = 0; x < currentCon->linewidth; x++ )
+			buffer[ x ] = line[ x ] & 0xff;
+		buffer[ currentCon->linewidth ] = '\0';
+		// terminate on ending space characters
+		for ( x = currentCon->linewidth - 1 ; x >= 0 ; x-- ) {
+			if ( buffer[ x ] == ' ' )
+				buffer[ x ] = '\0';
 			else
 				break;
 		}
@@ -569,8 +567,7 @@ If no console is visible, the text will appear at the top of the game window
 */
 void CL_ConsolePrint( char *txt ) {
 	int i;
-	qboolean isKill = qfalse;
-	qboolean isHit = qfalse;
+	qboolean isFrag = qfalse;
 	qboolean isChat = qfalse;
 
 	qboolean skipnotify = qfalse; // NERVE - SMF
@@ -599,11 +596,8 @@ void CL_ConsolePrint( char *txt ) {
 		}
 	}
 
-	if (txt[0] == 17) {
-		isKill = qtrue;
-		txt++;
-	} else if (txt[0] == 18) {
-		isHit = qtrue;
+	if (txt[0] == 17 || txt[0] == 18) {
+		isFrag = qtrue;
 		txt++;
 	} else if (txt[0] == 19) {
 		isChat = qtrue;
@@ -612,11 +606,8 @@ void CL_ConsolePrint( char *txt ) {
 
 	writeTextToConsole(&consoles[CONSOLE_ALL], txt, skipnotify);
 
-	if (isKill) {
+	if (isFrag) {
 		writeTextToConsole(&consoles[CONSOLE_KILLS], txt, skipnotify);
-		writeTextToConsole(&consoles[CONSOLE_HITS], txt, skipnotify);
-	} else if (isHit) {
-		writeTextToConsole(&consoles[CONSOLE_HITS], txt, skipnotify);
 	} else if (isChat) {
 		writeTextToConsole(&consoles[CONSOLE_CHAT], txt, skipnotify);
 	} else {
@@ -915,9 +906,9 @@ void Con_DrawConsole( void ) {
 	int i;
 
 	if (com_developer && com_developer->integer)
-		numConsoles = 6;
-	else
 		numConsoles = 5;
+	else
+		numConsoles = 4;
 
 	// check for console width changes from a vid mode change
 	Con_CheckResize (currentCon);

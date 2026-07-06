@@ -1,7 +1,8 @@
 # ioquake 3 for UrbanTerror
 
-[![Build Status](https://travis-ci.org/mickael9/ioq3.svg?branch=urt)](https://travis-ci.org/mickael9/ioq3)
-[Download prebuilt binaries for Linux/macOS/Windows](http://builds.iourtm9.tk/urt/)
+[![Build Status](https://github.com/mickael9/ioq3/actions/workflows/main.yml/badge.svg)](https://github.com/mickael9/ioq3/actions/workflows/main.yml)
+
+[Download prebuilt binaries for Linux/macOS/Windows](https://github.com/mickael9/ioq3/releases)
 
 This project is an initiative to backport the relevant ioUrbanTerror-specific
 features to an up-to-date ioquake3.
@@ -144,7 +145,6 @@ set dedicated 2 // Make the server visible to the internet
 exec server.cfg // Start server with the specified config file
 ```
 
-
 ## Impoved keyboard handling
 
 - Number keys in the first row are always mapped to number keys, on AZERTY
@@ -162,9 +162,20 @@ exec server.cfg // Start server with the specified config file
 
 - Ctrl-V and Shift-Insert can be used to paste text on all platforms.
 
+## New SkeetShoot mode
+
+Start a server in FFA (g_gametype 0) with a SkeetShoot map from 2014 or later.
+- `sv_skeetshoot` enable/disable skeetshooting mod.
+- `sv_skeethitreport` report every skeet hit as server message.
+- `sv_skeethitsound` sound to play upon skeet hit (keep default for no troubles)
+- `sv_skeetpoints` how many points for each skeet hit: if 0 will use a distance based point system
+- `sv_skeetpointsnotify` visually notify each point scored to the client who performed the shot
+- `sv_skeetprotect` protect hit/kill of non-skeet entities (i.e. players)
+- `sv_skeetspeed` speed of each skeet (default to 2800)
+
 ## Other changes
 
-- Download UI is improved a bit
+- Improved download UI.
 
 - Downloading can still be attempted if the server has no download URL set.
   In this case we use the default one (urbanterror.info).
@@ -188,16 +199,19 @@ exec server.cfg // Start server with the specified config file
 
 - CURL protocols (for map downloads) are limited to HTTP(S) and FTP(S).
 
-- Fixed `stats` command exploit
+- Fixed `stats` command exploit.
 
-- Fixed that `save` could create new directories on jump servers with persistent positions enabled
+- Fixed that `save` could create new directories on jump servers with persistent positions enabled.
 
-- Fix a buffer overflow when a funstuff is bigger than 13 characters
+- Fixed a buffer overflow when a funstuff is bigger than 13 characters.
+
+- Fixed `stopserverdemo` file descriptor leak on client drop.
+
 
 # Feature parity status with original ioUrbanTerror
 
 ## Common
-- [x] UrbanTerror 4.2+ demo format (.urtdemo)
+- [x] UrbanTerror 4.2+ demo format (`.urtdemo`)
 - [x] Auth system
 - [x] `+vstr` command
 - [x] Compressed pak list

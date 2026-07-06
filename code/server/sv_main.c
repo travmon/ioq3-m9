@@ -22,29 +22,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
-#ifdef USE_VOIP
-cvar_t *sv_voip;
-cvar_t *sv_voipProtocol;
-#endif
+serverStatic_t	svs;					// persistant server info
+server_t		sv;						// local server
+vm_t			*gvm = NULL;			// game virtual machine
 
-serverStatic_t	svs;				// persistant server info
-server_t		sv;					// local server
-vm_t			*gvm = NULL;				// game virtual machine
-
-cvar_t	*sv_fps = NULL;			// time rate for running non-clients
-cvar_t	*sv_timeout;			// seconds without any message
-cvar_t	*sv_zombietime;			// seconds to sink messages after disconnect
-cvar_t	*sv_rconPassword;		// password for remote server commands
-cvar_t	*sv_privatePassword;		// password for the privateClient slots
+cvar_t	*sv_fps = NULL;					// time rate for running non-clients
+cvar_t	*sv_timeout;					// seconds without any message
+cvar_t	*sv_zombietime;					// seconds to sink messages after disconnect
+cvar_t	*sv_rconPassword;				// password for remote server commands
+cvar_t	*sv_privatePassword;			// password for the privateClient slots
 cvar_t	*sv_maxclients;
-
-cvar_t	*sv_privateClients;		// number of clients reserved for password
+cvar_t	*sv_privateClients;				// number of clients reserved for password
 cvar_t	*sv_hostname;
 cvar_t	*sv_master[MAX_MASTER_SERVERS];	// master server ip address
-cvar_t	*sv_reconnectlimit;		// minimum seconds between connect messages
-cvar_t	*sv_showloss;			// report when usercmds are lost
-cvar_t	*sv_padPackets;			// add nop bytes to messages
-cvar_t	*sv_killserver;			// menu system can set to 1 to shut server down
+cvar_t	*sv_reconnectlimit;				// minimum seconds between connect messages
+cvar_t	*sv_showloss;					// report when usercmds are lost
+cvar_t	*sv_padPackets;					// add nop bytes to messages
+cvar_t	*sv_killserver;					// menu system can set to 1 to shut server down
 cvar_t	*sv_mapname;
 cvar_t	*sv_mapChecksum;
 cvar_t	*sv_serverid;
@@ -58,17 +52,23 @@ cvar_t	*sv_extraPure;
 cvar_t	*sv_extraPaks;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_newpurelist;
-cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
+cvar_t	*sv_lanForceRate;				// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_banFile;
 cvar_t	*sv_clientsPerIp;
 
 serverBan_t serverBans[SERVER_MAXBANS];
 int serverBansCount = 0;
-cvar_t	*sv_demonotice;			// notice to print to a client being recorded server-side
-cvar_t	*sv_demofolder;			//@Barbatos - the name of the folder that contains server-side demos
-cvar_t	*sv_autoRecordDemo;
-cvar_t  *sv_tellprefix;
-cvar_t  *sv_sayprefix;
+cvar_t	*sv_demonotice;					// notice to print to a client being recorded server-side
+cvar_t	*sv_demofolder;					// define the server-side demo folder name
+cvar_t	*sv_autoRecordDemo;				// automatically create a server demo of every player that connects
+cvar_t	*sv_tellprefix;
+cvar_t	*sv_sayprefix;
+cvar_t	*sv_teamSwitch;					// allow players to switch teams (0, Default = players must wait 5 seconds to switch, 1 = no restriction)
+
+#ifdef USE_VOIP
+cvar_t	*sv_voip;
+cvar_t	*sv_voipProtocol;
+#endif
 
 #ifdef USE_AUTH
 cvar_t	*sv_authServerIP;
@@ -76,15 +76,15 @@ cvar_t	*sv_auth_engine;
 #endif
 
 #ifdef USE_SKEETMOD
-cvar_t  *sv_skeetshoot;
-cvar_t  *sv_skeethitreport;
-cvar_t  *sv_skeethitsound;
-cvar_t  *sv_skeetpoints;
-cvar_t  *sv_skeetpointsnotify;
-cvar_t  *sv_skeetprotect;
-cvar_t  *sv_skeetspeed;
-cvar_t  *sv_skeetrotate;
-cvar_t  *sv_skeetfansize;
+cvar_t	*sv_skeetshoot;					// enable/disable skeetshooting mod
+cvar_t	*sv_skeethitreport;				// report every skeet hit as server message
+cvar_t	*sv_skeethitsound;				// sound to play upon skeet hit
+cvar_t	*sv_skeetpoints;				// how many points for each skeet hit: if 0 will use a distance based point system
+cvar_t	*sv_skeetpointsnotify;			// notify each point scored to the client who performed the shot
+cvar_t	*sv_skeetprotect;				// protect hit/kill of non-skeet entities (i.e. players)
+cvar_t	*sv_skeetspeed;					// speed of each skeet
+cvar_t	*sv_skeetrotate;				// ROLL angle rotation (defaults to 0, range between -360 and +360)
+cvar_t	*sv_skeetfansize;				// spread of the skeet launcher (defaults to 144, range 0-360)
 #endif
 
 /*
@@ -657,12 +657,15 @@ void SVC_Info( netadr_t from ) {
 
 	// don't count privateclients
 	count = humans = 0;
-	for ( i = sv_privateClients->integer ; i < sv_maxclients->integer ; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
+	for (i = 0; i < sv_maxclients->integer; i++) {
+		if (svs.clients[i].state < CS_CONNECTED) {
+			continue;
+		}
+		if (i >= sv_privateClients->integer) {
 			count++;
-			if (svs.clients[i].netchan.remoteAddress.type != NA_BOT) {
-				humans++;
-			}
+		}
+		if (svs.clients[i].netchan.remoteAddress.type != NA_BOT) {
+			humans++;
 		}
 	}
 
@@ -841,7 +844,7 @@ static void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 
 	if (!Q_stricmp(c, "getstatus")) {
 		SVC_Status( from );
-  } else if (!Q_stricmp(c, "getinfo")) {
+	} else if (!Q_stricmp(c, "getinfo")) {
 		SVC_Info( from );
 	} else if (!Q_stricmp(c, "getchallenge")) {
 		SV_GetChallenge(from);
@@ -923,8 +926,8 @@ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
 				cl->lastPacketTime = svs.time;	// don't timeout
 				SV_ExecuteClientMessage( cl, msg );
 			}
+			return;
 		}
-		return;
 	}
 }
 
@@ -939,7 +942,8 @@ Updates the cl->ping variables
 static void SV_CalcPings( void ) {
 	int			i, j;
 	client_t	*cl;
-	int			total, count;
+	int			count;
+	float		total;
 	int			delta;
 	playerState_t	*ps;
 
@@ -961,17 +965,17 @@ static void SV_CalcPings( void ) {
 		total = 0;
 		count = 0;
 		for ( j = 0 ; j < PACKET_BACKUP ; j++ ) {
-			if ( cl->frames[j].messageAcked <= 0 ) {
+			if ( cl->frames[j].messageAcked == 0 ) {
 				continue;
 			}
 			delta = cl->frames[j].messageAcked - cl->frames[j].messageSent;
 			count++;
-			total += delta;
+			total += 1.0/(delta+0.1);  // average frequency (avoiding 0 division)
 		}
 		if (!count) {
 			cl->ping = 999;
 		} else {
-			cl->ping = total/count;
+			cl->ping = (float)count/total;  // interval from average frequency
 			if ( cl->ping > 999 ) {
 				cl->ping = 999;
 			}

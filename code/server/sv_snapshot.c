@@ -367,8 +367,8 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 		}
 		// entities can be flagged to be sent to a given mask of clients
 		if ( ent->r.svFlags & SVF_CLIENTMASK ) {
-			if (frame->ps.clientNum >= 32)
-				Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 32" );
+			if (frame->ps.clientNum >= 36)
+				Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 36" );
 			if (~ent->r.singleClient & (1 << frame->ps.clientNum))
 				continue;
 		}
@@ -590,19 +590,19 @@ SV_SendMessageToClient
 Called by SV_SendClientSnapshot and SV_SendClientGameState
 =======================
 */
-void SV_SendMessageToClient(msg_t *msg, client_t *client)
+void SV_SendMessageToClient( msg_t *msg, client_t *client )
 {
-	if (client->demo_recording && !client->demo_waiting) {
-		SVD_WriteDemoFile(client, msg);
+	if ( client->demo_recording && !client->demo_waiting ) {
+		SVD_WriteDemoFile( client, msg );
 	}
 	
 	// record information about the message
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSize = msg->cursize;
-	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = svs.time;
-	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageAcked = -1;
+	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = svs.msgTime;
+	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageAcked = 0;
 
 	// send the datagram
-	SV_Netchan_Transmit(client, msg);
+	SV_Netchan_Transmit( client, msg );
 }
 
 
@@ -662,40 +662,46 @@ SV_SendClientMessages
 */
 void SV_SendClientMessages(void)
 {
-	int		i;
+	int			i;
 	client_t	*c;
+	qboolean	lanRate;
+	
+	svs.msgTime = Sys_Milliseconds();
 
 	// send a message to each connected client
-	for(i=0; i < sv_maxclients->integer; i++)
+	for( i = 0; i < sv_maxclients->integer; i++ )
 	{
-		c = &svs.clients[i];
+		c = &svs.clients[ i ];
 		
-		if(!c->state)
+		if ( c->state == CS_FREE )
 			continue;		// not connected
 
-		if(svs.time - c->lastSnapshotTime < c->snapshotMsec * com_timescale->value)
-			continue;		// It's not time yet
-
-		if(c->netchan.unsentFragments || c->netchan_start_queue)
+		if ( c->netchan.unsentFragments || c->netchan_start_queue )
 		{
 			c->rateDelayed = qtrue;
 			continue;		// Drop this snapshot if the packet queue is still full or delta compression will break
 		}
+	
+		// 1. Local clients get snapshots every server frame
+		// 2. Remote clients get snapshots depending on rate and requested number of updates
 
-		if(!(c->netchan.remoteAddress.type == NA_LOOPBACK ||
-		     (sv_lanForceRate->integer && Sys_IsLANAddress(c->netchan.remoteAddress))))
+		if ( svs.time - c->lastSnapshotTime < c->snapshotMsec * com_timescale->value ) 
 		{
-			// rate control for clients not on LAN 
-			if(SV_RateMsec(c) > 0)
-			{
-				// Not enough time since last packet passed through the line
-				c->rateDelayed = qtrue;
-				continue;
-			}
+			continue;		// not time yet
+		}
+
+		lanRate = (c->netchan.remoteAddress.type == NA_LOOPBACK ||
+			(sv_lanForceRate->integer && Sys_IsLANAddress(c->netchan.remoteAddress)));
+
+		if ( !lanRate && SV_RateMsec( c ) > 0 )
+		{
+			// Not enough time since last packet passed through the line
+			c->rateDelayed = qtrue;
+			continue;
 		}
 
 		// generate and send a new message
-		SV_SendClientSnapshot(c);
+		SV_SendClientSnapshot( c );
 		c->lastSnapshotTime = svs.time;
 		c->rateDelayed = qfalse;
 	}

@@ -82,7 +82,7 @@ SafeFS_Write
 static ID_INLINE void SafeFS_Write( const void *buffer, int len, fileHandle_t f )
 {
   if( FS_Write( buffer, len, f ) < len )
-    Com_Error( ERR_DROP, "Failed to write avi file" );
+    Com_Error( ERR_DROP, "Failed to write AVI file" );
 }
 
 /*
@@ -131,7 +131,7 @@ static ID_INLINE void START_CHUNK( const char *s )
 {
   if( afd.chunkStackTop == MAX_RIFF_CHUNKS )
   {
-    Com_Error( ERR_DROP, "ERROR: Top of chunkstack breached" );
+    Com_Error( ERR_DROP, "ERROR: Top of chunkstack breached." );
   }
 
   afd.chunkStack[ afd.chunkStackTop ] = bufIndex;
@@ -151,7 +151,7 @@ static ID_INLINE void END_CHUNK( void )
 
   if( afd.chunkStackTop <= 0 )
   {
-    Com_Error( ERR_DROP, "ERROR: Bottom of chunkstack breached" );
+    Com_Error( ERR_DROP, "ERROR: Bottom of chunkstack breached." );
   }
 
   afd.chunkStackTop--;
@@ -525,7 +525,7 @@ void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size )
   if( bytesInBuffer + size > PCM_BUFFER_SIZE )
   {
     Com_Printf( S_COLOR_YELLOW
-        "WARNING: Audio capture buffer overflow -- truncating\n" );
+        "WARNING: Audio capture buffer overflow, truncating.\n" );
     size = PCM_BUFFER_SIZE - bytesInBuffer;
   }
 

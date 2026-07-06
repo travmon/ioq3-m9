@@ -1962,9 +1962,9 @@ static void FixRenderCommandList( int newShader ) {
 
 				for( i = 0, drawSurf = ds_cmd->drawSurfs; i < ds_cmd->numDrawSurfs; i++, drawSurf++ ) {
 					R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlightMap );
-                    sortedIndex = (( drawSurf->sort >> QSORT_SHADERNUM_SHIFT ) & (MAX_SHADERS-1));
+					sortedIndex = (( drawSurf->sort >> QSORT_SHADERNUM_SHIFT ) & (MAX_SHADERS-1));
 					if( sortedIndex >= newShader ) {
-						sortedIndex++;
+						sortedIndex = shader->sortedIndex;
 						drawSurf->sort = (sortedIndex << QSORT_SHADERNUM_SHIFT) | entityNum | ( fogNum << QSORT_FOGNUM_SHIFT ) | (int)dlightMap;
 					}
 				}
@@ -2234,7 +2234,7 @@ static shader_t *FinishShader( void ) {
 
     // check for a missing texture
 		if ( !pStage->bundle[0].image[0] ) {
-			ri.Printf( PRINT_WARNING, "Shader %s has a stage with no image\n", shader.name );
+			ri.Printf( PRINT_DEVELOPER, "Shader %s has a stage with no image\n", shader.name );
 			pStage->active = qfalse;
 			stage++;
 			continue;

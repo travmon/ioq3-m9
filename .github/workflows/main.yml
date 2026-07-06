@@ -1,0 +1,85 @@
+name: Build
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            env:
+              OS: Linux
+
+          - os: ubuntu-latest
+            env:
+              PLATFORM: mingw32
+              DEFAULT_HOMEDIR: .
+              OS: Windows
+
+          - os: macos-latest
+            env:
+              OS: macOS
+
+    env:
+      MAKEFLAGS: -j4
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: setup
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt-get update; sudo apt install -yy mingw-w64 libgl1-mesa-dev libsdl2-dev libfreetype6-dev libxxf86vm-dev
+
+      - name: build
+        run: |
+          make all
+          make all ARCHIVE=1 -j1
+          cd build
+          version=$(git show -s --pretty=format:%ad-%h --date=short)
+          for file in *.zip; do
+            bname=$(basename "$file" .zip)
+            bname=${bname/mingw32-/windows}
+            bname=${bname/darwin-universal/macOS}
+            bname=${bname/linux-/linux}
+            bname=${bname/x86_64/64}
+            bname=${bname/x86/32}
+            mv "$file" "ioq3urt-m9-${bname}-${version}.zip"
+          done
+        env: ${{ matrix.env }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-${{github.run_number}}-${{ matrix.env.OS }}.zip
+          path: build/*.zip
+  upload:
+    needs: build
+    if: github.ref == 'refs/heads/urt'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: rickstaa/action-create-tag@v1
+      with:
+        tag: builds/${{github.run_number}}
+        force_push_tag: true
+
+    - name: Download all workflow run artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: build
+
+    - uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: build/*/*.zip
+        tag_name: builds/${{github.run_number}}
+        overwrite: true
+        draft: false

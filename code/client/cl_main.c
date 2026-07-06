@@ -1855,12 +1855,12 @@ CL_CompleteRcon
 */
 static void CL_CompleteRcon( char *args, int argNum )
 {
-	if( argNum == 2 )
+	if ( argNum >= 2 )
 	{
 		// Skip "rcon "
 		char *p = Com_SkipTokens( args, 1, " " );
 
-		if( p > args )
+		if ( p > args )
 			Field_CompleteCommand( p, qtrue, qtrue );
 	}
 }

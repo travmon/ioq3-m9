@@ -276,7 +276,7 @@ void Cmd_Exec_f( void ) {
 
 	if (Cmd_Argc () != 2) {
 		Com_Printf ("exec%s <filename> : execute a script file%s\n",
-		            quiet ? "q" : "", quiet ? " without notification" : "");
+								quiet ? "q" : "", quiet ? " without notification" : "");
 		return;
 	}
 
@@ -335,7 +335,7 @@ void Cmd_PVstr_f( void ) {
 	}
 
 	if (v) {
-		Cbuf_InsertText( va("%s\n", v ) );
+	Cbuf_InsertText( v );
 	}
 }
 
@@ -355,7 +355,7 @@ void Cmd_Vstr_f( void ) {
 	}
 
 	v = Cvar_VariableString( Cmd_Argv( 1 ) );
-	Cbuf_InsertText( va("%s\n", v ) );
+	Cbuf_InsertText( v );
 }
 
 
@@ -520,7 +520,7 @@ void Cmd_Args_Sanitize(void)
 		if(strlen(c) > MAX_CVAR_VALUE_STRING - 1)
 			c[MAX_CVAR_VALUE_STRING - 1] = '\0';
 		
-		while ((c = strpbrk(c, "\n\r;"))) {
+		while ((c = strpbrk(c, "\n\r"))) {
 			*c = ' ';
 			++c;
 		}
@@ -544,8 +544,8 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 	char	*textOut;
 
 #ifdef TKN_DBG
-  // FIXME TTimo blunt hook to try to find the tokenization of userinfo
-  Com_DPrintf("Cmd_TokenizeString: %s\n", text_in);
+	// FIXME TTimo blunt hook to try to find the tokenization of userinfo
+	Com_DPrintf("Cmd_TokenizeString: %s\n", text_in);
 #endif
 
 	// clear previous args
@@ -594,7 +594,7 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 		}
 
 		// handle quoted strings
-    // NOTE TTimo this doesn't handle \" escaping
+		// NOTE TTimo this doesn't handle \" escaping
 		if ( !ignoreQuotes && *text == '"' ) {
 			cmd_argv[cmd_argc] = textOut;
 			cmd_argc++;

@@ -38,24 +38,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef struct voipServerPacket_s
 {
-	int generation;
-	int sequence;
-	int frames;
-	int len;
-	int sender;
-	int flags;
+	int	generation;
+	int	sequence;
+	int	frames;
+	int	len;
+	int	sender;
+	int	flags;
 	byte data[4000];
 } voipServerPacket_t;
 #endif
 
 #ifdef USE_SKEETMOD
-#define MAX_SKEETS      128     // Max amount of skeets that will be animated in skeed mode
+#define	MAX_SKEETS	128				// Max amount of skeets that will be animated in skeed mode
 
 typedef struct skeetInfo_s {
-	qboolean 	valid;        	// qtrue if this entity is a skeet
-	vec3_t      origin;         // coordinates of the skeet spawn point
-	int         shootTime;      // time when the skeet has been shot
-	qboolean    moving;         // whether the skeet is movingin the air or not
+	qboolean		valid;			// qtrue if this entity is a skeet
+	vec3_t			origin;			// coordinates of the skeet spawn point
+	int				shootTime;		// time when the skeet has been shot
+	qboolean		moving;			// whether the skeet is movingin the air or not
 } skeetInfo_t;
 #endif
 
@@ -70,7 +70,7 @@ typedef struct svEntity_s {
 	int			areanum, areanum2;
 	int			snapshotCounter;	// used to prevent double adding from portal views
 #ifdef USE_SKEETMOD
-	skeetInfo_t skeetInfo;
+	skeetInfo_t	skeetInfo;
 #endif
 } svEntity_t;
 
@@ -88,7 +88,7 @@ typedef struct {
 	int				checksumFeed;		// the feed key that we use to compute the pure checksum strings
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=475
 	// the serverId associated with the current checksumFeed (always <= serverId)
-	int       checksumFeedServerId;	
+	int				checksumFeedServerId;	
 	int				snapshotCounter;	// incremented for each snapshot built
 	int				timeResidual;		// <= 1000 / sv_frame->value
 	int				nextFrameTime;		// when time > nextFrameTime, process world
@@ -96,7 +96,7 @@ typedef struct {
 	svEntity_t		svEntities[MAX_GENTITIES];
 
 #ifdef USE_SKEETMOD
-	svEntity_t      *skeets[MAX_SKEETS];
+	svEntity_t		*skeets[MAX_SKEETS];
 #endif
 
 	char			*entityParsePoint;	// used during game VM init
@@ -140,8 +140,8 @@ typedef enum {
 } clientState_t;
 
 typedef struct netchan_buffer_s {
-	msg_t           msg;
-	byte            msgBuffer[MAX_MSGLEN];
+	msg_t			msg;
+	byte			msgBuffer[MAX_MSGLEN];
 #ifdef LEGACY_PROTOCOL
 	char		clientCommandString[MAX_STRING_CHARS];	// valid command string for SV_Netchan_Encode
 #endif
@@ -216,7 +216,7 @@ typedef struct client_s {
 #endif
 
 #ifdef USE_AUTH
-	char auth[MAX_NAME_LENGTH];
+	char			auth[MAX_NAME_LENGTH];
 #endif
 
 #ifdef USE_SKEETMOD
@@ -253,6 +253,7 @@ typedef struct {
 	qboolean	initialized;				// sv_init has completed
 
 	int			time;						// will be strictly increasing across level changes
+	int			msgTime;					// will be used as precise sent time
 
 	int			snapFlagServerBit;			// ^= SNAPFLAG_SERVERCOUNT every SV_SpawnServer()
 
@@ -316,7 +317,6 @@ extern	cvar_t	*sv_zombietime;
 extern	cvar_t	*sv_rconPassword;
 extern	cvar_t	*sv_privatePassword;
 extern	cvar_t	*sv_maxclients;
-
 extern	cvar_t	*sv_privateClients;
 extern	cvar_t	*sv_hostname;
 extern	cvar_t	*sv_master[MAX_MASTER_SERVERS];
@@ -338,21 +338,23 @@ extern	cvar_t	*sv_extraPaks;
 extern	cvar_t	*sv_newpurelist;
 extern	cvar_t	*sv_floodProtect;
 extern	cvar_t	*sv_lanForceRate;
-extern	cvar_t	*sv_clientsPerIp;
 extern	cvar_t	*sv_banFile;
+extern	cvar_t	*sv_clientsPerIp;
 
 extern	serverBan_t serverBans[SERVER_MAXBANS];
 extern	int serverBansCount;
+
+extern	cvar_t	*sv_demonotice;			// notice to print to a client being recorded server-side
+extern	cvar_t	*sv_demofolder;			// define the server-side demo folder name
+extern	cvar_t	*sv_autoRecordDemo;		// automatically create a server demo of every player that connects
+extern	cvar_t	*sv_sayprefix;
+extern	cvar_t	*sv_tellprefix;
+extern	cvar_t	*sv_teamSwitch;			// allow players to switch teams (0, Default = players must wait 5 seconds to switch, 1 = no restriction)
 
 #ifdef USE_VOIP
 extern	cvar_t	*sv_voip;
 extern	cvar_t	*sv_voipProtocol;
 #endif
-extern	cvar_t	*sv_demonotice;
-extern  cvar_t  *sv_demofolder;
-extern  cvar_t  *sv_autoRecordDemo;
-extern  cvar_t  *sv_sayprefix;
-extern  cvar_t  *sv_tellprefix;
 
 #ifdef USE_AUTH
 extern	cvar_t	*sv_authServerIP;
@@ -360,15 +362,15 @@ extern	cvar_t	*sv_auth_engine;
 #endif
 
 #ifdef USE_SKEETMOD
-extern  cvar_t  *sv_skeetshoot;         // enable/disable skeetshooting mod
-extern  cvar_t  *sv_skeethitreport;     // report every skeet hit as server message
-extern  cvar_t  *sv_skeethitsound;      // sound to play upon skeet hit
-extern  cvar_t  *sv_skeetpoints;        // how many points for each skeet hit: if 0 will use a distance based point system
-extern  cvar_t  *sv_skeetpointsnotify;  // notify each point scored to the client who performed the shot
-extern  cvar_t  *sv_skeetprotect;       // protect hit/kill of non-skeet entities (i.e. players)
-extern  cvar_t  *sv_skeetspeed;			// speed of each skeet
-extern  cvar_t  *sv_skeetrotate;		// ROLL angle rotation (defaults to 0, range between -360 and +360)
-extern  cvar_t  *sv_skeetfansize;		// spread of the skeet launcher (defaults to 144, range 0-360)
+extern	cvar_t	*sv_skeetshoot;			// enable/disable skeetshooting mod
+extern	cvar_t	*sv_skeethitreport;		// report every skeet hit as server message
+extern	cvar_t	*sv_skeethitsound;		// sound to play upon skeet hit
+extern	cvar_t	*sv_skeetpoints;		// how many points for each skeet hit: if 0 will use a distance based point system
+extern	cvar_t	*sv_skeetpointsnotify;	// notify each point scored to the client who performed the shot
+extern	cvar_t	*sv_skeetprotect;		// protect hit/kill of non-skeet entities (i.e. players)
+extern	cvar_t	*sv_skeetspeed;			// speed of each skeet
+extern	cvar_t	*sv_skeetrotate;		// ROLL angle rotation (defaults to 0, range between -360 and +360)
+extern	cvar_t	*sv_skeetfansize;		// spread of the skeet launcher (defaults to 144, range 0-360)
 #endif
 
 //===========================================================
@@ -395,109 +397,109 @@ struct leakyBucket_s {
 
 extern leakyBucket_t outboundLeakyBucket;
 
-qboolean SVC_RateLimit( leakyBucket_t *bucket, int burst, int period );
-qboolean SVC_RateLimitAddress( netadr_t from, int burst, int period );
+qboolean	SVC_RateLimit( leakyBucket_t *bucket, int burst, int period );
+qboolean	SVC_RateLimitAddress( netadr_t from, int burst, int period );
 
-void SV_FinalMessage (char *message);
-void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
-
-
-void SV_AddOperatorCommands (void);
-void SV_RemoveOperatorCommands (void);
+void		SV_FinalMessage (char *message);
+void QDECL	SV_SendServerCommand( client_t *cl, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 
 
-void SV_MasterShutdown (void);
-int SV_RateMsec(client_t *client);
+void		SV_AddOperatorCommands (void);
+void		SV_RemoveOperatorCommands (void);
+
+
+void		SV_MasterShutdown (void);
+int			SV_RateMsec(client_t *client);
 
 
 //
 // sv_utils.c
 //
-int   SV_FindConfigstringIndex(char *name, int start, int max, qboolean create);
-void  QDECL SV_LogPrintf(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
-void  SV_SendScoreboardSingleMessageToAllClients(client_t *cl, playerState_t *ps);
-void  SV_SendSoundToClient(client_t *cl, char *name);
-int   SV_UnitsToMeters(float distance);
-int   SV_XORShiftRand(void);
-float SV_XORShiftRandRange(float min, float max);
-void  SV_XORShiftRandSeed(unsigned int seed);
+int			SV_FindConfigstringIndex(char *name, int start, int max, qboolean create);
+void QDECL	SV_LogPrintf(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
+void		SV_SendScoreboardSingleMessageToAllClients(client_t *cl, playerState_t *ps);
+void		SV_SendSoundToClient(client_t *cl, char *name);
+int			SV_UnitsToMeters(float distance);
+int			SV_XORShiftRand(void);
+float		SV_XORShiftRandRange(float min, float max);
+void		SV_XORShiftRandSeed(unsigned int seed);
 
 
 //
 // sv_skeetshoot.c
 //
 #ifdef USE_SKEETMOD
-void     SV_SkeetInit(void);
-void     SV_SkeetThink(void);
-void     SV_SkeetLaunch(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetReset(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetRespawn(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetParseGameRconCommand(const char *text);
-void     SV_SkeetParseGameServerCommand(int clientNum, const char *text);
-void     SV_SkeetBackupPowerups(client_t *cl);
-void     SV_SkeetRestorePowerups(client_t *cl);
-void     SV_SkeetScore(client_t *cl, playerState_t *ps, trace_t *tr);
-void     SV_SkeetClientEvents(client_t *cl);
-qboolean SV_SkeetShoot(client_t *cl, playerState_t *ps);
+void		SV_SkeetInit(void);
+void		SV_SkeetThink(void);
+void		SV_SkeetLaunch(svEntity_t *sEnt, sharedEntity_t *gEnt);
+void		SV_SkeetReset(svEntity_t *sEnt, sharedEntity_t *gEnt);
+void		SV_SkeetRespawn(svEntity_t *sEnt, sharedEntity_t *gEnt);
+void		SV_SkeetParseGameRconCommand(const char *text);
+void		SV_SkeetParseGameServerCommand(int clientNum, const char *text);
+void		SV_SkeetBackupPowerups(client_t *cl);
+void		SV_SkeetRestorePowerups(client_t *cl);
+void		SV_SkeetScore(client_t *cl, playerState_t *ps, trace_t *tr);
+void		SV_SkeetClientEvents(client_t *cl);
+qboolean	SV_SkeetShoot(client_t *cl, playerState_t *ps);
 #endif
 
 //
 // sv_init.c
 //
-void SV_SetConfigstring( int index, const char *val );
-void SV_GetConfigstring( int index, char *buffer, int bufferSize );
-void SV_UpdateConfigstrings( client_t *client );
+void		SV_SetConfigstring( int index, const char *val );
+void		SV_GetConfigstring( int index, char *buffer, int bufferSize );
+void		SV_UpdateConfigstrings( client_t *client );
 
-void SV_SetUserinfo( int index, const char *val );
-void SV_GetUserinfo( int index, char *buffer, int bufferSize );
+void		SV_SetUserinfo( int index, const char *val );
+void		SV_GetUserinfo( int index, char *buffer, int bufferSize );
 
-void SV_ChangeMaxClients( void );
-void SV_SpawnServer( char *server, qboolean killBots );
+void		SV_ChangeMaxClients( void );
+void		SV_SpawnServer( char *server, qboolean killBots );
 
 
 
 //
 // sv_client.c
 //
-void SV_GetChallenge(netadr_t from);
+void		SV_GetChallenge(netadr_t from);
 
-void SV_DirectConnect( netadr_t from );
+void		SV_DirectConnect( netadr_t from );
 
-void SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
-void SV_UserinfoChanged( client_t *cl );
+void		SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
+void		SV_UserinfoChanged( client_t *cl );
 
-void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd );
-void SV_FreeClient(client_t *client);
-void SV_DropClient( client_t *drop, const char *reason );
+void		SV_ClientEnterWorld( client_t *client, usercmd_t *cmd );
+void		SV_FreeClient(client_t *client);
+void		SV_DropClient( client_t *drop, const char *reason );
 
 #ifdef USE_AUTH
-void SV_Auth_DropClient(client_t *drop, const char *reason, const char *message);
+void		SV_Auth_DropClient(client_t *drop, const char *reason, const char *message);
 #endif
 
-void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
-void SV_ClientThink (client_t *cl, usercmd_t *cmd);
+void		SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
+void		SV_ClientThink (client_t *cl, usercmd_t *cmd);
 
-int SV_SendQueuedMessages(void);
-void SV_UpdateUserinfo_f( client_t *cl );
+int			SV_SendQueuedMessages(void);
+void		SV_UpdateUserinfo_f( client_t *cl );
 
 
 //
 // sv_ccmds.c
 //
-void SV_Heartbeat_f( void );
-void SVD_WriteDemoFile(const client_t*, const msg_t*);
-void SV_StartRecordOne(client_t *client, char *filename);
+void		SV_Heartbeat_f( void );
+void		SVD_WriteDemoFile(const client_t*, const msg_t*);
+void		SV_StartRecordOne(client_t *client, char *filename);
 
 //
 // sv_snapshot.c
 //
-void SV_AddServerCommand( client_t *client, const char *cmd );
-void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg );
-void SV_WriteFrameToClient (client_t *client, msg_t *msg);
-void SV_SendMessageToClient( msg_t *msg, client_t *client );
-void SV_SendClientMessages( void );
-void SV_SendClientSnapshot( client_t *client );
-void SV_CheckClientUserinfoTimer( void );
+void		SV_AddServerCommand( client_t *client, const char *cmd );
+void		SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg );
+void		SV_WriteFrameToClient (client_t *client, msg_t *msg);
+void		SV_SendMessageToClient( msg_t *msg, client_t *client );
+void		SV_SendClientMessages( void );
+void		SV_SendClientSnapshot( client_t *client );
+void		SV_CheckClientUserinfoTimer( void );
 
 //
 // sv_game.c
@@ -525,24 +527,24 @@ int			SV_BotLibShutdown( void );
 int			SV_BotGetSnapshotEntity( int client, int ent );
 int			SV_BotGetConsoleMessage( int client, char *buf, int size );
 
-int BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t *points);
-void BotImport_DebugPolygonDelete(int id);
+int			BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t *points);
+void		BotImport_DebugPolygonDelete(int id);
 
-void SV_BotInitBotLib(void);
+void		SV_BotInitBotLib(void);
 
 //============================================================
 //
 // high level object sorting to reduce interaction tests
 //
 
-void SV_ClearWorld (void);
+void		SV_ClearWorld (void);
 // called after the world model has been loaded, before linking any entities
 
-void SV_UnlinkEntity( sharedEntity_t *ent );
+void		SV_UnlinkEntity( sharedEntity_t *ent );
 // call before removing an entity, and before trying to move one,
 // so it doesn't clip against itself
 
-void SV_LinkEntity( sharedEntity_t *ent );
+void		SV_LinkEntity( sharedEntity_t *ent );
 // Needs to be called any time an entity changes origin, mins, maxs,
 // or solid.  Automatically unlinks if needed.
 // sets ent->r.absmin and ent->r.absmax
@@ -553,10 +555,10 @@ void SV_LinkEntity( sharedEntity_t *ent );
 clipHandle_t SV_ClipHandleForEntity( const sharedEntity_t *ent );
 
 
-void SV_SectorList_f( void );
+void		SV_SectorList_f( void );
 
 
-int SV_AreaEntities( const vec3_t mins, const vec3_t maxs, int *entityList, int maxcount );
+int			SV_AreaEntities( const vec3_t mins, const vec3_t maxs, int *entityList, int maxcount );
 // fills in a table of entity numbers with entities that have bounding boxes
 // that intersect the given area.  It is possible for a non-axial bmodel
 // to be returned that doesn't actually intersect the area on an exact
@@ -565,11 +567,11 @@ int SV_AreaEntities( const vec3_t mins, const vec3_t maxs, int *entityList, int 
 // The world entity is never returned in this list.
 
 
-int SV_PointContents( const vec3_t p, int passEntityNum );
+int			SV_PointContents( const vec3_t p, int passEntityNum );
 // returns the CONTENTS_* value from the world and all entities at the given point.
 
 
-void SV_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
+void		SV_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 // mins and maxs are relative
 
 // if the entire move stays in a solid volume, trace.allsolid will be set,
@@ -581,13 +583,13 @@ void SV_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, c
 // passEntityNum is explicitly excluded from clipping checks (normally ENTITYNUM_NONE)
 
 
-void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int entityNum, int contentmask, int capsule );
+void		SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int entityNum, int contentmask, int capsule );
 // clip to a specific entity
 
 //
 // sv_net_chan.c
 //
-void SV_Netchan_Transmit( client_t *client, msg_t *msg);
-int SV_Netchan_TransmitNextFragment(client_t *client);
-qboolean SV_Netchan_Process( client_t *client, msg_t *msg );
-void SV_Netchan_FreeQueue(client_t *client);
+void		SV_Netchan_Transmit( client_t *client, msg_t *msg);
+int			SV_Netchan_TransmitNextFragment(client_t *client);
+qboolean	SV_Netchan_Process( client_t *client, msg_t *msg );
+void		SV_Netchan_FreeQueue(client_t *client);

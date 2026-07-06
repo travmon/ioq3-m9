@@ -701,11 +701,7 @@ static void dmaHD_PaintChannelFrom16(channel_t *ch, const sfx_t *sc, int count, 
 }
 
 
-// Use paint buffer transfer functions from snd_mix.c
-extern int*     snd_p;
-extern int      snd_linear_count;
-extern short*   snd_out;
-
+// From snd_mix.c
 extern void S_TransferPaintBuffer(int endtime, portable_samplepair_t paintbuffer[]);
 
 void dmaHD_PaintChannels( int endtime ) 

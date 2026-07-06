@@ -1709,7 +1709,7 @@ static void SV_StartRecordAll(void) {
     }
 }
 
-static void SV_StopRecordOne(client_t *client) {
+void SV_StopRecordOne(client_t *client) {
 
     Com_DPrintf("SV_StopRecordOne\n");
 
