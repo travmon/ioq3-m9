@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define PRODUCT_NAME				"ioq3 UrT m9 RSM"
+#define PRODUCT_NAME				"ioq3-m9 RSM"
 #define BASEGAME					"q3ut4"
-#define CLIENT_WINDOW_TITLE		"UrT-m9-RSM"
-#define CLIENT_WINDOW_MIN_TITLE	"UrT-m9-RSM"
+#define CLIENT_WINDOW_TITLE		"ioq3-m9 RSM"
+#define CLIENT_WINDOW_MIN_TITLE	"ioq3-m9 RSM"
 #define HOMEPATH_NAME_UNIX		".q3a"
 #define HOMEPATH_NAME_WIN			"Quake3"
 #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
