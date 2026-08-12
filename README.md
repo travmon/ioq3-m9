@@ -16,6 +16,7 @@ These are the features that are specific to this build.
 
 * Correct the problem of ping computing from the server. Pull request from [karnute](https://github.com/mickael9/ioq3/pull/29/commits)
 * `sv_allowSuicide` - Option to disable suicide via `/kill` Default is allow `1` [Clearskies](https://github.com/anthonynguyen)
+* `forcecvar` - forcecvar <name> <cvar>
 
 ### *Client*
 
