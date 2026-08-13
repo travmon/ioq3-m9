@@ -29,7 +29,7 @@ jobs:
       MAKEFLAGS: -j4
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: setup
         if: ${{ runner.os == 'Linux' }}
@@ -49,21 +49,21 @@ jobs:
             bname=${bname/linux-/linux}
             bname=${bname/x86_64/64}
             bname=${bname/x86/32}
-            mv "$file" "ioq3urt-m9-rsm-${bname}-${version}.zip"
+            mv "$file" "ioq3-m9-rsm-${bname}-${version}.zip"
           done
         env: ${{ matrix.env }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         with:
           name: build-${{github.run_number}}-${{ matrix.env.OS }}.zip
           path: build/*.zip
   upload:
     needs: build
-    if: github.ref == 'refs/heads/urt'
+    if: github.ref == 'refs/heads/rsm'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
 
     - uses: rickstaa/action-create-tag@v1
       with:
@@ -71,7 +71,7 @@ jobs:
         force_push_tag: true
 
     - name: Download all workflow run artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v8
       with:
         path: build
 
